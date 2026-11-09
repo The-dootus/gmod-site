@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V&amp;B Entertainment Profits Ledger</title>
+<style>
+:root{--bg:#f3f5f4;--panel:#fff;--ink:#16211d;--mute:#5d6b65;--line:#d5dcd8;--accent:#1f6b4f;--bad:#a3281f;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#101614;--panel:#18211e;--ink:#e6efeb;--mute:#97a8a0;--line:#2c3a35;--accent:#5fc7a8;--bad:#ff8a80;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+h1{font:600 22px Georgia,serif;margin:0}h2{font:600 17px Georgia,serif;margin:24px 0 10px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:12px 0;flex-wrap:wrap}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;color:var(--mute);cursor:pointer;font:inherit}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.stat b{display:block;font:600 24px Georgia,serif}.stat span{color:var(--mute);font-size:13px}
+.owed{border:2px solid var(--accent);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.owed b{font:600 28px Georgia,serif}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:600;font-size:13px}.n{text-align:right!important;font-variant-numeric:tabular-nums}
+.neg,.err{color:var(--bad)}.void{opacity:.45;text-decoration:line-through}
+form.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:3px}
+label.ck{flex-direction:row;align-items:center;gap:6px;padding-bottom:8px}
+input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+button.b{background:var(--accent);color:var(--bg);border:0;border-radius:4px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.b:disabled{opacity:.6}button.l{background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;padding:0 6px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.center{max-width:340px;margin:12vh auto}.center form{display:flex;flex-direction:column;gap:12px}
+.note{color:var(--mute);font-size:13px}.hide{display:none!important}
+</style></head><body><main>
+<section id="login" class="center hide"><h1>V&amp;B Entertainment Profits Ledger</h1><p class="note">Sign in to view records.</p>
+<div class="panel"><form id="lf"><label>Username<input name="u" autocomplete="username" required></label>
+<label>Password<input name="p" type="password" autocomplete="current-password" required></label>
+<div class="err" id="le" role="alert"></div><button class="b" id="lb">Sign in</button></form></div></section>
+
+<section id="app" class="hide">
+<header><h1>V&amp;B Entertainment Profits Ledger</h1><div><span id="who" class="note"></span> <button class="l" id="out">Sign out</button></div></header>
+<nav id="tabs"><button data-t="ov" class="on">Overview</button><button data-t="en">Entries</button><button data-t="po">Payouts</button><button data-t="tx">Taxes</button><button data-t="hi">Change history</button></nav>
+<div class="err" id="ge" role="alert"></div>
+
+<div id="t-ov"><div class="panel owed"><div><span class="note">Owed to Bisarno right now</span><br><b id="bal"></b><br><span class="note" id="balnote"></span></div></div>
+<div class="stats" id="stats"></div><div class="panel tw"><table id="evt"></table></div>
+<p class="note">Net profit = revenue − mutually recognized costs − this night’s share of tax. A losing night adds nothing to what is owed and is marked “Loss”.</p></div>
+
+<div id="t-en" class="hide"><div class="panel ed"><form class="row" id="ef"><label>Date<input type="date" name="date" required></label>
+<label>Venue<select name="venue" id="vsel"></select></label><label>Type<select name="type" id="tsel"><option>Revenue</option><option>Expense</option></select></label>
+<label>Amount ($)<input name="amount" inputmode="decimal" required size="9"></label><label id="rl">Reason<input name="reason" size="22" list="rs"></label>
+<label class="ck" id="kl"><input type="checkbox" name="rec">Mutually recognized</label><label>Note<input name="note" size="16"></label>
+<button class="b">Add entry</button></form><datalist id="rs"></datalist>
+<p class="note">Everything collected during an event is revenue (tips and overpayments too). Fix a mistake by voiding the entry and adding it again.</p></div>
+<h2>All entries</h2><div class="panel tw"><table id="et"></table></div></div>
+
+<div id="t-po" class="hide"><div class="panel ed"><form class="row" id="pf"><label>Date paid<input type="date" name="date" required></label>
+<label>Amount ($)<input name="amount" inputmode="decimal" required size="9"></label><label>Note<input name="note" size="24"></label><button class="b">Record payment</button></form></div>
+<h2>Payments to Bisarno</h2><div class="panel tw"><table id="pt"></table></div></div>
+
+<div id="t-tx" class="hide"><div class="panel ed"><form class="row" id="xf"><label>Tax item<input name="name" placeholder="e.g. Tobacco license" required></label>
+<label>Amount per period ($)<input name="amount" inputmode="decimal" required size="9"></label><label>Starts<input type="date" name="start" required></label><button class="b">Add tax item</button></form>
+<p class="note" id="pn"></p></div><h2>Tax schedule</h2><div class="panel tw"><table id="xt"></table></div>
+<h2>Tax periods</h2><div class="panel tw"><table id="pr"></table></div></div>
+
+<div id="t-hi" class="hide"><div class="panel tw"><table id="at"></table></div></div>
+</section></main>
+<script>
+const SCRIPT_URL="PASTE-YOUR-WEB-APP-URL-HERE";
+const $=s=>document.querySelector(s);let TOKEN=sessionStorage.getItem("tok"),D=null;
+const money=c=>(c<0?"-":"")+"$"+(Math.abs(c)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const truthy=v=>v===true||String(v).toUpperCase()==="TRUE";
+function el(t,x,c){const e=document.createElement(t);if(x!=null)e.textContent=x;if(c)e.className=c;return e}
+function show(id){$("#login").classList.toggle("hide",id!=="login");$("#app").classList.toggle("hide",id!=="app")}
+async function api(action,extra={}){const r=await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action,token:TOKEN,...extra})});const j=await r.json();
+ if(j.error){if(j.error==="SESSION"){signOut();throw Error("Session ended. Sign in again.")}throw Error(j.error)}return j}
+function signOut(){TOKEN=null;D=null;sessionStorage.removeItem("tok");show("login")}
+function table(t,head,rows,nums=[]){t.replaceChildren();const h=t.createTHead().insertRow();head.forEach((x,i)=>h.appendChild(el("th",x,nums.includes(i)?"n":"")));
+ const b=t.createTBody();rows.forEach(r=>{const tr=b.insertRow();if(r.cls)tr.className=r.cls;r.cells.forEach((c,i)=>{const td=tr.insertCell();c instanceof Node?td.appendChild(c):td.textContent=c;if(nums.includes(i))td.className="n"})});
+ if(!rows.length){const td=b.insertRow().insertCell();td.colSpan=head.length;td.textContent="Nothing here yet.";td.className="note"}}
+function btn(txt,fn){const b=el("button",txt,"l");b.onclick=async()=>{try{err();D=await api(...fn());render()}catch(x){err(x.message)}};return b}
+function err(m){$("#ge").textContent=m||""}
+function render(){const ed=D.me.role==="editor",R=D.report,T=R.totals;$("#who").textContent=D.me.name+" ("+D.me.role+")";
+ document.querySelectorAll(".ed").forEach(e=>e.classList.toggle("hide",!ed));
+ $("#bal").textContent=money(T.balance);$("#balnote").textContent="Earned "+money(T.earned)+" − paid "+money(T.paid)+(T.pending?" · "+money(T.pending)+" in costs not yet recognized":"");
+ $("#stats").replaceChildren(...[["Total revenue",money(T.revenue)],["Recognized costs",money(T.costs)],["Taxes charged",money(T.tax)],["Net profit",money(T.net)],["Profit margin",T.revenue?(T.net/T.revenue*100).toFixed(1)+"%":"—"]]
+  .map(([l,v])=>{const d=el("div",null,"panel stat");d.append(el("b",v,T.net<0&&l==="Net profit"?"neg":""),el("span",l));return d}));
+ table($("#evt"),["Date","Venue","Revenue","Costs","Pending costs","Tax share","Net","Bisarno share",""],R.events.map(o=>({cells:[o.date,o.venue,money(o.revenue),money(o.costs),money(o.pending),money(o.tax),el("span",money(o.net),o.loss?"neg":""),o.pct?money(o.share)+" ("+o.pct+"%)":"No split",o.loss?el("strong","Loss","neg"):""]})),[2,3,4,5,6,7]);
+ const vs=$("#vsel"),keep=vs.value;vs.replaceChildren(...D.venues.map(v=>new Option(v.venue+(+v.split_pct?" ("+v.split_pct+"% split)":""),v.venue)));if(keep)vs.value=keep;
+ $("#rs").replaceChildren(...[...new Set(D.entries.map(e=>e.reason).filter(Boolean))].map(c=>{const o=el("option");o.value=c;return o}));
+ table($("#et"),["Date","Venue","Type","Amount","Reason","Recognized","Note",""],[...D.entries].sort((a,b)=>String(b.date).localeCompare(a.date)||b.id-a.id).map(e=>{const v=truthy(e.voided),x=el("span");
+  let rec=e.type==="Expense"?(truthy(e.recognized)?"Yes":"No"):"";
+  if(ed&&!v){if(e.type==="Expense"){const c=el("input");c.type="checkbox";c.checked=truthy(e.recognized);c.setAttribute("aria-label","Mutually recognized");c.onchange=async()=>{try{err();D=await api("setRecognized",{id:e.id,value:c.checked});render()}catch(z){err(z.message);c.checked=!c.checked}};rec=c}
+   x.append(btn("Void",()=>confirm("Void this entry? It stays in the history but no longer counts.")?["voidEntry",{id:e.id}]:(()=>{throw Error("Cancelled")})()))}
+  return{cls:v?"void":"",cells:[e.date,e.venue,e.type,money(Math.round(e.amount*100)),e.reason,rec,e.note,x]}}),[3]);
+ table($("#pt"),["Date paid","Amount","Note","Recorded by",""],D.payouts.map(p=>({cls:truthy(p.voided)?"void":"",cells:[p.date,money(Math.round(p.amount*100)),p.note,p.by,ed&&!truthy(p.voided)?btn("Void",()=>confirm("Void this payment?")?["voidPayout",{id:p.id}]:(()=>{throw Error("Cancelled")})()):""]})),[1]);
+ table($("#xt"),["Item","Per period","Starts","Ends",""],D.tax.map(t=>({cells:[t.name,money(Math.round(t.amount_per_period*100)),t.start,t.end||"ongoing",ed&&!t.end?btn("End",()=>{const d=prompt("Last day this tax applies (YYYY-MM-DD):",today());if(!d)throw Error("Cancelled");return["endTax",{id:t.id,end:d}]}):""]})),[1]);
+ $("#pn").textContent="Tax is paid on weekends every two weeks and covers the two weeks ending on the payment day. It is charged only to Motel nights in that window, split in proportion to revenue. A new item counts from the period it starts in.";
+ table($("#pr"),["Period (tax paid on last day)","Tax due","Charged to Motel nights","Not charged (no Motel revenue that period)"],R.periods.map(p=>({cells:[p.start+" to "+p.end,money(p.due),money(p.allocated),money(p.unallocated)]})),[1,2,3]);
+ table($("#at"),["When (UTC)","Who","Action","Detail"],D.audit.map(a=>({cells:[String(a.at).replace("T"," ").slice(0,19),a.user,a.action,a.detail]})));}
+function tab(t){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));["ov","en","po","tx","hi"].forEach(k=>$("#t-"+k).classList.toggle("hide",k!==t))}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function sub(form,action,build,after){$(form).onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector("button.b");b.disabled=true;try{err();D=await api(action,build(ev.target));ev.target.reset();after&&after(ev.target);render()}catch(x){err(x.message)}b.disabled=false}}
+sub("#ef","addEntry",f=>({entry:{date:f.date.value,venue:f.venue.value,type:f.type.value,amount:f.amount.value.replace(/[$,]/g,""),reason:f.reason.value,recognized:f.rec.checked,note:f.note.value}}),f=>{f.date.value=today();toggle()});
+sub("#pf","addPayout",f=>({date:f.date.value,amount:f.amount.value.replace(/[$,]/g,""),note:f.note.value}),f=>f.date.value=today());
+sub("#xf","addTax",f=>({name:f.name.value,amount:f.amount.value.replace(/[$,]/g,""),start:f.start.value}));
+function toggle(){const x=$("#tsel").value==="Expense";$("#kl").classList.toggle("hide",!x);$("#rl").firstChild.textContent=x?"Reason (required)":"Category (optional)"}
+$("#tsel").onchange=toggle;
+$("#lf").onsubmit=async ev=>{ev.preventDefault();const b=$("#lb");b.disabled=true;b.textContent="Signing in…";$("#le").textContent="";
+ try{const r=await api("login",{username:ev.target.u.value,password:ev.target.p.value});TOKEN=r.token;sessionStorage.setItem("tok",TOKEN);ev.target.p.value="";await boot()}catch(x){$("#le").textContent=x.message}b.disabled=false;b.textContent="Sign in"};
+$("#out").onclick=async()=>{await api("logout").catch(()=>{});signOut()};
+async function boot(){try{D=await api("data");show("app");render();document.querySelectorAll("form[id$=f] input[type=date]").forEach(i=>i.value=today());toggle()}catch(x){show("login");if(x.message&&!/Session/.test(x.message)&&TOKEN)$("#le").textContent=x.message}}
+TOKEN?boot():show("login");
+</script></body></html>

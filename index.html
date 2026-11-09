@@ -57,12 +57,12 @@ button.b:disabled{opacity:.6}button.l{background:none;border:0;color:var(--accen
 <div id="t-tx" class="hide"><div class="panel ed"><form class="row" id="xf"><label>Tax item<input name="name" placeholder="e.g. Tobacco license" required></label>
 <label>Amount per period ($)<input name="amount" inputmode="decimal" required size="9"></label><label>Starts<input type="date" name="start" required></label><button class="b">Add tax item</button></form>
 <p class="note" id="pn"></p></div><h2>Tax schedule</h2><div class="panel tw"><table id="xt"></table></div>
-<h2>Tax periods</h2><div class="panel tw"><table id="pr"></table></div></div>
+<h2>Tax cycles</h2><div class="panel tw"><table id="pr"></table></div></div>
 
 <div id="t-hi" class="hide"><div class="panel tw"><table id="at"></table></div></div>
 </section></main>
 <script>
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwGFJBVCDIl-f913eo1PcfZh8eymRYyapO-ZkVwRRfEJSsyT8x4UNcRB_84FDBAd1ZJAQ/exec";
+const SCRIPT_URL="https://script.google.com/macros/library/d/1T5pUn19liAVrUrplrSNb_bGebIyRCnGf6Rgba3bviElnavtrCYLTu-HY/2";
 const $=s=>document.querySelector(s);let TOKEN=sessionStorage.getItem("tok"),D=null;
 const money=c=>(c<0?"-":"")+"$"+(Math.abs(c)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
@@ -92,8 +92,8 @@ function render(){const ed=D.me.role==="editor",R=D.report,T=R.totals;$("#who").
   return{cls:v?"void":"",cells:[e.date,e.venue,e.type,money(Math.round(e.amount*100)),e.reason,rec,e.note,x]}}),[3]);
  table($("#pt"),["Date paid","Amount","Note","Recorded by",""],D.payouts.map(p=>({cls:truthy(p.voided)?"void":"",cells:[p.date,money(Math.round(p.amount*100)),p.note,p.by,ed&&!truthy(p.voided)?btn("Void",()=>confirm("Void this payment?")?["voidPayout",{id:p.id}]:(()=>{throw Error("Cancelled")})()):""]})),[1]);
  table($("#xt"),["Item","Per period","Starts","Ends",""],D.tax.map(t=>({cells:[t.name,money(Math.round(t.amount_per_period*100)),t.start,t.end||"ongoing",ed&&!t.end?btn("End",()=>{const d=prompt("Last day this tax applies (YYYY-MM-DD):",today());if(!d)throw Error("Cancelled");return["endTax",{id:t.id,end:d}]}):""]})),[1]);
- $("#pn").textContent="Tax is paid on weekends every two weeks and covers the two weeks ending on the payment day. It is charged only to Motel nights in that window, split in proportion to revenue. A new item counts from the period it starts in.";
- table($("#pr"),["Period (tax paid on last day)","Tax due","Charged to Motel nights","Not charged (no Motel revenue that period)"],R.periods.map(p=>({cells:[p.start+" to "+p.end,money(p.due),money(p.allocated),money(p.unallocated)]})),[1,2,3]);
+ $("#pn").textContent="Tax is paid on weekends every two weeks. A cycle starts on a payment day, and its Motel nights are charged against the next payment, split by revenue. As more nights come in, the cycle’s tax is re-split between them. A new item counts from the cycle it starts in.";
+ table($("#pr"),["Cycle","Next payment due","Tax","Charged to Motel nights","Not charged (no Motel revenue)"],R.periods.map(p=>({cells:[p.start+" to "+p.end+(p.current?" (current)":""),p.payDate,money(p.due),money(p.allocated),money(p.unallocated)]})),[2,3,4]);
  table($("#at"),["When (UTC)","Who","Action","Detail"],D.audit.map(a=>({cells:[String(a.at).replace("T"," ").slice(0,19),a.user,a.action,a.detail]})));}
 function tab(t){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));["ov","en","po","tx","hi"].forEach(k=>$("#t-"+k).classList.toggle("hide",k!==t))}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));

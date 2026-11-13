@@ -40,7 +40,7 @@ button.b:disabled{opacity:.6}button.l{background:none;border:0;color:var(--accen
 
 <div id="t-ov"><div class="stats" id="owed"></div>
 <div class="stats" id="stats"></div><div class="panel tw"><table id="evt"></table></div>
-<p class="note" id="pnd"></p><p class="note">Net profit = revenue − mutually recognized costs − this night’s share of tax. Bisarno (Motel only) and the lawyer each take their percentage of that same net; the rest is yours. A losing night pays them nothing and is marked “Loss”.</p></div>
+<p class="note" id="pnd"></p><p class="note">Net profit = revenue − mutually recognized costs − this night’s share of tax. Bisarno (Motel only) and the lawyer each take their percentage of that same net; the rest is yours, minus any costs not marked recognized, which come out of your share only. A losing night pays them nothing and is marked “Loss”.</p></div>
 
 <div id="t-en" class="hide"><div class="panel ed"><form class="row" id="ef"><label>Date<input type="date" name="date" required></label>
 <label>Venue<select name="venue" id="vsel"></select></label><label>Type<select name="type" id="tsel"><option>Revenue</option><option>Expense</option></select></label>
@@ -80,7 +80,7 @@ function err(m){$("#ge").textContent=m||""}
 function render(){const ed=D.me.role==="editor",R=D.report,T=R.totals;$("#who").textContent=D.me.name+" ("+D.me.role+")";
  document.querySelectorAll(".ed").forEach(e=>e.classList.toggle("hide",!ed));
  $("#owed").replaceChildren(...[[T.bisarno,"Owed to Bisarno"],[T.lawyer,"Owed to the lawyer ("+R.lawyerPct+"%)"]].filter(x=>x[0]).map(([b,l])=>{const d=el("div",null,"panel stat");d.style.border="2px solid var(--accent)";d.append(el("b",money(b.balance)),el("span",l),el("br"),el("span","Earned "+money(b.earned)+" − paid "+money(b.paid),"note"));return d}),...(T.mine!==undefined?[(()=>{const d=el("div",null,"panel stat");d.append(el("b",money(T.mine),T.mine<0?"neg":""),el("span","Your share"));return d})()]:[]));
- $("#pnd").textContent=T.pending?money(T.pending)+" in costs not yet recognized.":"";
+ $("#pnd").textContent=T.pending?money(T.pending)+" in unrecognized costs (taken from your share only).":"";
  $("#stats").replaceChildren(...[["Total revenue",money(T.revenue)],["Recognized costs",money(T.costs)],["Taxes charged",money(T.tax)],["Net profit",money(T.net)],["Profit margin",T.revenue?(T.net/T.revenue*100).toFixed(1)+"%":"—"]]
   .map(([l,v])=>{const d=el("div",null,"panel stat");d.append(el("b",v,T.net<0&&l==="Net profit"?"neg":""),el("span",l));return d}));
  const full=R.events.some(o=>o.lawyer!==undefined);
